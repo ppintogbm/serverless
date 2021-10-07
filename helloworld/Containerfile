@@ -1,0 +1,17 @@
+FROM docker.io/library/golang:1.16 as builder
+
+WORKDIR /app
+
+COPY go.* ./
+RUN go mod download
+
+COPY . ./
+
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -v -o helloworld
+
+FROM docker.io/library/alpine:3
+RUN apk add --no-cache ca-certificates
+
+COPY --from=builder /app/helloworld /helloworld
+
+CMD ["/helloworld"]
